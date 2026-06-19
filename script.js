@@ -1160,7 +1160,7 @@ function renderHome() {
   app.innerHTML = `
     <section class="page home">
       <div class="home-title-block">
-        <h1 class="home-title">White Lab</h1>
+        <h1 class="home-title">White Lab<span class="home-title-mark" aria-hidden="true">&reg;</span></h1>
         <p class="home-subtitle">${cleanText("\u5728\u79e9\u5e8f\u3001\u56fe\u50cf\u4e0e\u8868\u8fbe\u4e4b\u95f4\uff0c\u6301\u7eed\u7ec3\u4e60\u89c6\u89c9\u5224\u65ad")}</p>
       </div>
       <div class="selected-strip" aria-label="${cleanText("\u9996\u9875\u7cbe\u9009\u4f5c\u54c1")}">
@@ -1966,42 +1966,6 @@ function blurTextMarkup(text, {
   return `<${tag} class="${className} blur-text" data-blur-text>${linesMarkup}</${tag}>`;
 }
 
-function renderAbout() {
-  const quote = "AI是一片新的视觉土壤，\n而设计，\n是让它长出秩序、风格\n与记忆点的方式。";
-  app.innerHTML = `
-    <section class="page about-page-v2" aria-label="关于我">
-      <div class="about-stage">
-        <figure class="about-v2-portrait reveal-photo">
-          <img src="./assets/about/profile-new.jpg" alt="白浪的人物照片" />
-        </figure>
-
-        <div class="about-v2-side">
-          <div class="about-v2-copy">
-            <h1 class="about-v2-quote blur-text-static">${quote.replace(/\n/g, "<br />")}</h1>
-          </div>
-
-          <div class="about-v2-footer">
-            <div class="about-v2-contact">
-              <button class="about-v2-contact-link about-v2-contact-link-wechat blur-text-static" type="button">Wechat:191-9612-2081</button>
-              <button class="about-v2-contact-link blur-text-static" type="button">Email:997346305@qq.com</button>
-            </div>
-
-            <div class="about-v2-actions">
-              <button class="about-v2-logo about-v2-logo-libtv blur-text-static" type="button" data-preview="./assets/about/card-libtv.png" aria-label="查看 LibTV 卡片">LibTV</button>
-              <button class="about-v2-logo about-v2-logo-rednote blur-text-static" type="button" data-preview="./assets/about/card-rednote.png" aria-label="查看小红书卡片">小红书</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="about-v2-hover-card" aria-hidden="true">
-        <img class="about-v2-hover-card-image" src="" alt="" />
-      </div>
-    </section>
-  `;
-  initAboutPage();
-}
-
 function initAboutPage() {
   const page = app.querySelector(".about-page-v2");
   if (!page) return;
@@ -2080,11 +2044,16 @@ function initAboutPage() {
 
   const setPreview = (source, event, { width = 260 } = {}) => {
     if (!hoverCard || !hoverCardImage || !source || !event) return;
+    hoverCardImage.alt = "preview";
     hoverCardImage.src = source;
     hoverCard.style.setProperty("--card-width", `${width}px`);
     hoverCard.classList.add("is-visible");
     requestAnimationFrame(() => placePreview(event, width));
-    hoverCardImage.onload = () => placePreview(event, width);
+    if (hoverCardImage.complete) {
+      placePreview(event, width);
+    } else {
+      hoverCardImage.onload = () => placePreview(event, width);
+    }
   };
 
   const movePreview = (event, width = 260) => {
@@ -2105,6 +2074,9 @@ function initAboutPage() {
     wechat.addEventListener("pointerenter", (event) => setPreview("./assets/about/qr-wechat.png", event, { width: 120 }));
     wechat.addEventListener("pointermove", (event) => movePreview(event, 120));
     wechat.addEventListener("pointerleave", clearPreview);
+    wechat.addEventListener("mouseenter", (event) => setPreview("./assets/about/qr-wechat.png", event, { width: 120 }));
+    wechat.addEventListener("mousemove", (event) => movePreview(event, 120));
+    wechat.addEventListener("mouseleave", clearPreview);
   }
 
   const email = page.querySelectorAll(".about-v2-contact-link")[1];
@@ -2114,15 +2086,20 @@ function initAboutPage() {
   }
 
   page.querySelectorAll(".about-v2-logo[data-preview]").forEach((button) => {
-    button.addEventListener("pointerenter", (event) => {
+    const showPreview = (event) => {
       const width = button.classList.contains("about-v2-logo-rednote") ? 255 : 225;
       setPreview(button.dataset.preview, event, { width });
-    });
-    button.addEventListener("pointermove", (event) => {
+    };
+    const moveExistingPreview = (event) => {
       const width = button.classList.contains("about-v2-logo-rednote") ? 255 : 225;
       movePreview(event, width);
-    });
+    };
+    button.addEventListener("pointerenter", showPreview);
+    button.addEventListener("pointermove", moveExistingPreview);
     button.addEventListener("pointerleave", clearPreview);
+    button.addEventListener("mouseenter", showPreview);
+    button.addEventListener("mousemove", moveExistingPreview);
+    button.addEventListener("mouseleave", clearPreview);
   });
 }
 
