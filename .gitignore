@@ -6,5 +6,6 @@ Thumbs.db
 backups/
 tmp_review/
 tools/
+assets/previews/*-poster.png
 
 *.log

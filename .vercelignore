@@ -3,5 +3,6 @@
 backups
 tmp_review
 tools
+assets/previews/*-poster.png
 *.md
 *.bat

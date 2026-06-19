@@ -1048,13 +1048,36 @@ function workItemsForProject(project) {
   return mediaForProject(project).map((item, index) => ({ project, item, index }));
 }
 
+function previewAsset(src) {
+  return window.PORTFOLIO_PREVIEWS?.[src] || src;
+}
+
+function videoPosterAsset(src) {
+  return window.PORTFOLIO_VIDEO_POSTERS?.[src] || "";
+}
+
 function cover(project, className = "", context = "work") {
   if (project.video) {
     if (context === "home") {
       const src = project.homeVideo || project.video;
-      return `<div class="cover ${className}${surfaceRadiusClass(src)}"><video class="${surfaceRadiusClass(src).trim()}" src="${src}" muted autoplay loop playsinline preload="metadata" aria-label="${project.title}"></video></div>`;
+      const poster = videoPosterAsset(src);
+      return `
+        <div class="cover home-video-cover ${className}${surfaceRadiusClass(src)}" data-home-video-preview="${src}">
+          ${poster ? `<img src="${poster}" alt="" aria-hidden="true" decoding="async">` : ""}
+          <video class="${surfaceRadiusClass(src).trim()}" muted loop playsinline preload="none" aria-label="${project.title}"></video>
+        </div>
+      `;
     }
-    const src = context === "home" ? (project.homeVideo || project.video) : project.video;
+    const src = project.video;
+    const poster = videoPosterAsset(src) || videoPosterAsset(project.homeVideo);
+    if (poster) {
+      return `
+        <div class="cover video-frame-cover is-ready ${className}${surfaceRadiusClass(src)}" aria-label="${project.title}">
+          <img src="${poster}" alt="" aria-hidden="true" loading="lazy" decoding="async">
+          <span class="play-badge" aria-hidden="true"></span>
+        </div>
+      `;
+    }
     return `
       <div class="cover video-frame-cover ${className}${surfaceRadiusClass(src)}" data-video-cover="${src}" aria-label="${project.title}">
         <video class="${surfaceRadiusClass(src).trim()}" muted playsinline preload="none" aria-hidden="true"></video>
@@ -1062,20 +1085,22 @@ function cover(project, className = "", context = "work") {
       </div>
     `;
   }
-  const image = context === "work" && project.indexImage ? project.indexImage : (context === "home" && project.homeImage ? project.homeImage : project.image);
+  const sourceImage = context === "work" && project.indexImage ? project.indexImage : (context === "home" && project.homeImage ? project.homeImage : project.image);
+  const image = context === "home" || context === "work" ? previewAsset(sourceImage) : sourceImage;
   const loading = context === "home" ? "eager" : "lazy";
   const fetchpriority = context === "home" ? "high" : "auto";
   return `<div class="cover ${className}"><img class="${surfaceRadiusClass(image).trim()}" src="${image}" alt="${project.title}" loading="${loading}" fetchpriority="${fetchpriority}" decoding="async"></div>`;
 }
 
-function mediaMarkup(item, className = "") {
+function mediaMarkup(item, className = "", context = "detail") {
   const orientationClass = item.orientation ? `is-${item.orientation}` : "";
   const radiusClass = surfaceRadiusClass(item.src);
   const classes = [className, orientationClass, radiusClass.trim()].filter(Boolean).join(" ");
   if (item.type === "video") {
     return `<video class="${classes}" src="${item.src}" controls autoplay playsinline preload="metadata"></video>`;
   }
-  return `<img class="${classes}" src="${item.src}" alt="${item.title}" loading="lazy">`;
+  const src = context === "work" ? previewAsset(item.src) : item.src;
+  return `<img class="${classes}" src="${src}" alt="${item.title}" loading="lazy" decoding="async">`;
 }
 
 function thumbMarkup(item, title = "") {
@@ -1099,7 +1124,7 @@ function renderWorkCard(entry, renderIndex = 0) {
     return `
       <a class="project-card masonry-card" data-shape="${item.orientation || project.shape || "wide"}" href="#view/${project.id}/${index}" style="--card-index:${renderIndex}">
         <div class="project-card-media work-image-reveal" style="--reveal-index:${renderIndex % 4}">
-          ${mediaMarkup(item, "")}
+          ${mediaMarkup(item, "", "work")}
         </div>
       </a>
     `;
@@ -1176,7 +1201,29 @@ function renderHome() {
   `;
 
   initVideoCovers();
+  initHomeVideoPreviews();
   initHomeIntro();
+}
+
+function initHomeVideoPreviews() {
+  document.querySelectorAll("[data-home-video-preview]").forEach((coverEl) => {
+    const video = coverEl.querySelector("video");
+    if (!video) return;
+    video.addEventListener("loadeddata", () => coverEl.classList.add("is-ready"), { once: true });
+  });
+}
+
+function startHomeVideoPreview(link) {
+  const coverEl = link?.querySelector("[data-home-video-preview]");
+  const video = coverEl?.querySelector("video");
+  const src = coverEl?.dataset.homeVideoPreview;
+  if (!video || !src) return;
+  if (!video.src) {
+    video.src = src;
+    video.load();
+  }
+  const playback = video.play();
+  if (playback?.catch) playback.catch(() => {});
 }
 
 function hideHomeHoverLabel(hoverLabel) {
@@ -1217,6 +1264,7 @@ function clearHomeHover(strip, links, hoverLabel) {
   strip.classList.remove("is-hovering");
   hideHomeHoverLabel(hoverLabel);
   links.forEach((link) => {
+    link.querySelector("video")?.pause();
     link.classList.remove("is-active", "is-before-active", "is-after-active");
     link.style.removeProperty("--hover-shift");
     link.style.removeProperty("--hover-scale");
@@ -1229,6 +1277,7 @@ function setHomeHover(strip, links, activeIndex, event, hoverLabel, home) {
   clearHomeHover(strip, links, hoverLabel);
   const active = links[activeIndex];
   if (!active) return;
+  startHomeVideoPreview(active);
 
   const stripRect = strip.getBoundingClientRect();
   const rects = links.map((link) => {
