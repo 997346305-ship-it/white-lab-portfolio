@@ -1050,6 +1050,10 @@ function workItemsForProject(project) {
 
 function cover(project, className = "", context = "work") {
   if (project.video) {
+    if (context === "home") {
+      const src = project.homeVideo || project.video;
+      return `<div class="cover ${className}${surfaceRadiusClass(src)}"><video class="${surfaceRadiusClass(src).trim()}" src="${src}" muted autoplay loop playsinline preload="metadata" aria-label="${project.title}"></video></div>`;
+    }
     const src = context === "home" ? (project.homeVideo || project.video) : project.video;
     return `
       <div class="cover video-frame-cover ${className}${surfaceRadiusClass(src)}" data-video-cover="${src}" aria-label="${project.title}">
@@ -1059,7 +1063,9 @@ function cover(project, className = "", context = "work") {
     `;
   }
   const image = context === "work" && project.indexImage ? project.indexImage : (context === "home" && project.homeImage ? project.homeImage : project.image);
-  return `<div class="cover ${className}"><img class="${surfaceRadiusClass(image).trim()}" src="${image}" alt="${project.title}" loading="lazy"></div>`;
+  const loading = context === "home" ? "eager" : "lazy";
+  const fetchpriority = context === "home" ? "high" : "auto";
+  return `<div class="cover ${className}"><img class="${surfaceRadiusClass(image).trim()}" src="${image}" alt="${project.title}" loading="${loading}" fetchpriority="${fetchpriority}" decoding="async"></div>`;
 }
 
 function mediaMarkup(item, className = "") {
