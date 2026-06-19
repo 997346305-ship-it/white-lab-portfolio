@@ -1050,13 +1050,10 @@ function workItemsForProject(project) {
 
 function cover(project, className = "", context = "work") {
   if (project.video) {
-    if (context === "home") {
-      const src = project.homeVideo || project.video;
-      return `<div class="cover ${className}${surfaceRadiusClass(src)}"><video class="${surfaceRadiusClass(src).trim()}" src="${src}" muted autoplay loop playsinline preload="metadata" aria-label="${project.title}"></video></div>`;
-    }
+    const src = context === "home" ? (project.homeVideo || project.video) : project.video;
     return `
-      <div class="cover video-frame-cover ${className}${surfaceRadiusClass(project.video)}" data-video-cover="${project.video}" aria-label="${project.title}">
-        <video class="${surfaceRadiusClass(project.video).trim()}" muted playsinline preload="metadata" aria-hidden="true"></video>
+      <div class="cover video-frame-cover ${className}${surfaceRadiusClass(src)}" data-video-cover="${src}" aria-label="${project.title}">
+        <video class="${surfaceRadiusClass(src).trim()}" muted playsinline preload="none" aria-hidden="true"></video>
         <span class="play-badge" aria-hidden="true"></span>
       </div>
     `;
@@ -1070,7 +1067,7 @@ function mediaMarkup(item, className = "") {
   const radiusClass = surfaceRadiusClass(item.src);
   const classes = [className, orientationClass, radiusClass.trim()].filter(Boolean).join(" ");
   if (item.type === "video") {
-    return `<video class="${classes}" src="${item.src}" controls autoplay playsinline preload="auto"></video>`;
+    return `<video class="${classes}" src="${item.src}" controls autoplay playsinline preload="metadata"></video>`;
   }
   return `<img class="${classes}" src="${item.src}" alt="${item.title}" loading="lazy">`;
 }
@@ -1720,31 +1717,59 @@ function initViewerKeyboardShortcuts() {
 }
 
 function initVideoCovers() {
-  document.querySelectorAll("[data-video-cover]").forEach((coverEl) => {
-    if (coverEl.dataset.ready === "true") return;
+  const covers = Array.from(document.querySelectorAll("[data-video-cover]"));
+  if (!covers.length) return;
+
+  const hydrateCover = (coverEl) => {
+    if (coverEl.dataset.ready === "true" || coverEl.dataset.loading === "true") return;
     const video = coverEl.querySelector("video");
     if (!video) return;
     const src = coverEl.dataset.videoCover;
+    if (!src) return;
+
+    coverEl.dataset.loading = "true";
+    video.preload = "metadata";
     video.src = src;
+    video.load();
+
     video.addEventListener("loadedmetadata", () => {
-      const targetTime = Math.max(0.2, Math.min(1.6, (video.duration || 1) * 0.12));
+      const targetTime = Math.max(0.2, Math.min(1.2, (video.duration || 1) * 0.08));
       try {
         video.currentTime = targetTime;
       } catch {
         coverEl.dataset.ready = "true";
+        coverEl.classList.add("is-ready");
       }
     }, { once: true });
+
     video.addEventListener("seeked", () => {
       video.pause();
       coverEl.dataset.ready = "true";
       coverEl.classList.add("is-ready");
     }, { once: true });
+
     video.addEventListener("loadeddata", () => {
-      if (coverEl.dataset.ready !== "true") {
-        coverEl.classList.add("is-ready");
-      }
+      coverEl.classList.add("is-ready");
     }, { once: true });
+  };
+
+  if (!("IntersectionObserver" in window)) {
+    covers.forEach(hydrateCover);
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      hydrateCover(entry.target);
+      observer.unobserve(entry.target);
+    });
+  }, {
+    threshold: 0.2,
+    rootMargin: "120px 0px",
   });
+
+  covers.forEach((coverEl) => observer.observe(coverEl));
 }
 
 function initPressFeedback(selector) {
