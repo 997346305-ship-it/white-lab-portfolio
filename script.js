@@ -1154,10 +1154,10 @@ function renderHome() {
   app.innerHTML = `
     <section class="page home">
       <div class="home-title-block">
-        <h1 class="home-title">White Lab?</h1>
-        <p class="home-subtitle">????????????????????</p>
+        <h1 class="home-title">White Lab</h1>
+        <p class="home-subtitle">${cleanText("\u5728\u79e9\u5e8f\u3001\u56fe\u50cf\u4e0e\u8868\u8fbe\u4e4b\u95f4\uff0c\u6301\u7eed\u7ec3\u4e60\u89c6\u89c9\u5224\u65ad")}</p>
       </div>
-      <div class="selected-strip" aria-label="??????">
+      <div class="selected-strip" aria-label="${cleanText("\u9996\u9875\u7cbe\u9009\u4f5c\u54c1")}">
         ${featured.map((project) => `
           <a class="cover-link ${project.video ? "is-horizontal" : "is-vertical"}" href="${homeFeaturedHref(project)}">
             ${cover(project, project.video ? "wide" : "tall", "home")}
@@ -1169,6 +1169,7 @@ function renderHome() {
     </section>
   `;
 
+  initVideoCovers();
   initHomeIntro();
 }
 
@@ -1819,13 +1820,17 @@ function initWorkImageReveal() {
     return;
   }
 
+  const revealItem = (item, delay = 0) => {
+    window.setTimeout(() => {
+      item.classList.add("is-visible");
+    }, delay);
+  };
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       const revealDelay = Number(entry.target.style.getPropertyValue("--reveal-index")) * 70;
-      window.setTimeout(() => {
-        entry.target.classList.add("is-visible");
-      }, revealDelay);
+      revealItem(entry.target, revealDelay);
       observer.unobserve(entry.target);
     });
   }, {
@@ -1833,7 +1838,14 @@ function initWorkImageReveal() {
     rootMargin: "0px 0px -4% 0px",
   });
 
-  items.forEach((item) => observer.observe(item));
+  items.forEach((item, index) => {
+    observer.observe(item);
+    window.setTimeout(() => {
+      if (!item.classList.contains("is-visible")) {
+        revealItem(item, 0);
+      }
+    }, 900 + index * 40);
+  });
 }
 
 function initViewerImageZoom() {
