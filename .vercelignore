@@ -1,0 +1,7 @@
+.agents
+.codex-artifacts
+backups
+tmp_review
+tools
+*.md
+*.bat

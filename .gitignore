@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+
+.agents/
+.codex-artifacts/
+backups/
+tmp_review/
+tools/
+
+*.log
