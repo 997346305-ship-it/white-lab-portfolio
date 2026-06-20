@@ -1265,11 +1265,11 @@ body.route-about {
 }
 
 .about-page-v2.is-ready .about-v2-logo-libtv {
-  animation: about-logo-sway-libtv 8.4s ease-in-out 900ms infinite;
+  animation: about-logo-sway-libtv 2.4s ease-in-out 500ms infinite;
 }
 
 .about-page-v2.is-ready .about-v2-logo-rednote {
-  animation: about-logo-sway-rednote 8.4s ease-in-out 900ms infinite;
+  animation: about-logo-sway-rednote 2.4s ease-in-out 500ms infinite;
 }
 
 .about-v2-logo:hover,
@@ -1289,19 +1289,19 @@ body.route-about {
 }
 
 @keyframes about-logo-sway-libtv {
-  0%, 6%, 21%, 100% { transform: rotate(0deg); }
-  9% { transform: rotate(-2.6deg); }
-  12% { transform: rotate(2deg); }
-  15% { transform: rotate(-1deg); }
-  18% { transform: rotate(0.4deg); }
+  0%, 5%, 40%, 100% { transform: rotate(0deg); }
+  12% { transform: rotate(-2.8deg); }
+  20% { transform: rotate(2.2deg); }
+  28% { transform: rotate(-1deg); }
+  35% { transform: rotate(0.4deg); }
 }
 
 @keyframes about-logo-sway-rednote {
-  0%, 42%, 62%, 100% { transform: rotate(0deg); }
-  46% { transform: rotate(2.2deg); }
-  50% { transform: rotate(-1.7deg); }
-  54% { transform: rotate(0.8deg); }
-  58% { transform: rotate(-0.3deg); }
+  0%, 40%, 80%, 100% { transform: rotate(0deg); }
+  47% { transform: rotate(2.4deg); }
+  55% { transform: rotate(-1.9deg); }
+  63% { transform: rotate(0.9deg); }
+  72% { transform: rotate(-0.3deg); }
 }
 
 .sr-only {
