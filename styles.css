@@ -1209,24 +1209,39 @@ body.route-about {
 
 .about-v2-logo-stack {
   position: relative;
-  width: clamp(260px, 19vw, 412px);
+  width: clamp(232px, 17vw, 360px);
 }
 
-.about-v2-logo-stack img {
+.about-v2-logo-stack > img {
   display: block;
   width: 100%;
   height: auto;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .about-v2-logo {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: -7px;
+  bottom: -7px;
   border: 0;
   padding: 0;
   background: transparent;
   cursor: pointer;
-  transition: transform 420ms var(--about-ease-v2), filter 420ms var(--about-ease-v2);
+  transform-origin: 50% 82%;
+  will-change: transform;
+}
+
+.about-v2-logo::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 0;
+  bottom: 7px;
+  left: 0;
+  background-image: url("./assets/about/logos-yellow.png");
+  background-repeat: no-repeat;
+  transition: transform 300ms var(--about-ease-v2), filter 300ms var(--about-ease-v2);
 }
 
 .about-v2-logo-libtv {
@@ -1234,14 +1249,59 @@ body.route-about {
   width: 54%;
 }
 
+.about-v2-logo-libtv::before {
+  background-position: left top;
+  background-size: 185.185% 100%;
+}
+
 .about-v2-logo-rednote {
   right: 0;
   width: 38%;
 }
 
-.about-v2-logo:hover {
+.about-v2-logo-rednote::before {
+  background-position: right top;
+  background-size: 263.158% 100%;
+}
+
+.about-page-v2.is-ready .about-v2-logo-libtv {
+  animation: about-logo-sway-libtv 8.4s ease-in-out 900ms infinite;
+}
+
+.about-page-v2.is-ready .about-v2-logo-rednote {
+  animation: about-logo-sway-rednote 8.4s ease-in-out 900ms infinite;
+}
+
+.about-v2-logo:hover,
+.about-v2-logo:focus-visible {
+  animation-play-state: paused;
+}
+
+.about-v2-logo:hover::before,
+.about-v2-logo:focus-visible::before {
   transform: translateY(-2px) scale(1.015);
   filter: drop-shadow(0 0 18px rgba(231, 237, 33, 0.12));
+}
+
+.about-v2-logo:focus-visible {
+  outline: 2px solid var(--about-accent);
+  outline-offset: 2px;
+}
+
+@keyframes about-logo-sway-libtv {
+  0%, 6%, 21%, 100% { transform: rotate(0deg); }
+  9% { transform: rotate(-2.6deg); }
+  12% { transform: rotate(2deg); }
+  15% { transform: rotate(-1deg); }
+  18% { transform: rotate(0.4deg); }
+}
+
+@keyframes about-logo-sway-rednote {
+  0%, 42%, 62%, 100% { transform: rotate(0deg); }
+  46% { transform: rotate(2.2deg); }
+  50% { transform: rotate(-1.7deg); }
+  54% { transform: rotate(0.8deg); }
+  58% { transform: rotate(-0.3deg); }
 }
 
 .sr-only {
@@ -1394,7 +1454,13 @@ body.route-about {
   }
 
   .about-v2-logo-stack {
-    width: min(74vw, 312px);
+    width: min(68vw, 280px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-page-v2.is-ready .about-v2-logo {
+    animation: none;
   }
 }
 
