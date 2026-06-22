@@ -6,3 +6,4 @@ tools
 assets/previews/*-poster.png
 *.md
 *.bat
+*.ps1
